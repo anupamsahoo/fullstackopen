@@ -4,7 +4,7 @@ import ReactDOM from "react-dom/client";
 //import App_1 from "./part0/App_1";
 //import Feedback from "./part0/Feedback";
 //import RandomText from "./part0/RandomText";
-import Part1App from "./part1/Part1App";
+import Part1App1 from "./part1/Part1App1";
 
 const notes = [
   {
@@ -27,6 +27,6 @@ const notes = [
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <>
-    <Part1App notes={notes} />
+    <Part1App1 notes={notes} />
   </>
 );
