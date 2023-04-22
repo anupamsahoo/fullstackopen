@@ -1,82 +1,101 @@
-//Header, Content, and Total.
-const Header = (props) => {
-  return <h1>{props.course}</h1>;
-};
-const Content = (props) => {
-  const cData = props.data;
-  //console.log(cData);
-  return (
-    <>
-      {cData.map((value, index) => {
-        return (
-          <p key={index}>
-            {value.name} {value.exercises}
-          </p>
-        );
-      })}
-    </>
-  );
-};
-const Hello = ({ age, name }) => {
-  const bornYear = () => new Date().getFullYear() - age;
-  return (
-    <>
-      <p>
-        Hello {name}, you are {age} years old
-      </p>
-      <p>So you were probably born in {bornYear()}</p>
-    </>
-  );
-};
-const Total = (props) => {
-  const cData = props.data;
-  const sumD = cData.reduce((a, v) => (a = a + v.exercises), 0);
-  return <p>Number of exercises {sumD}</p>;
-};
+import { useState, useEffect } from "react";
+import Note from "./part2/Note";
+import noteService from "./part2/services/notes";
 
-const Counter = ({ counter }) => {
-  return (
-    <>
-      <p>{counter}</p>
-    </>
-  );
-};
+const App = (props) => {
+  const [notes, setNotes] = useState([]);
+  const [newNote, setNewNote] = useState("a new note...");
+  const [showAll, setShowAll] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("some error happened...");
 
-const App = () => {
-  const course = "Half Stack application development";
-  const part1 = "Fundamentals of React";
-  const exercises1 = 10;
-  const part2 = "Using props to pass data";
-  const exercises2 = 7;
-  const part3 = "State of a component";
-  const exercises3 = 14;
+  const Notification = ({ message }) => {
+    if (message === null) {
+      return null;
+    }
 
-  const courseData = {
-    name: "Half Stack application development",
-    parts: [
-      {
-        name: "Fundamentals of React",
-        exercises: 10,
-      },
-      {
-        name: "Using props to pass data",
-        exercises: 7,
-      },
-      {
-        name: "State of a component",
-        exercises: 14,
-      },
-    ],
+    return <div className="error">{message}</div>;
   };
 
+  const notesToShow = showAll
+    ? notes
+    : notes.filter((note) => note.important === true);
+
+  useEffect(() => {
+    noteService.getAll().then((initialNotes) => {
+      setNotes(initialNotes);
+    });
+  }, []);
+
+  const addNote = (event) => {
+    event.preventDefault();
+    const noteObject = {
+      content: newNote,
+      date: new Date().toJSON(),
+      important: Math.random() < 0.5,
+      id: notes.length + 1,
+    };
+    noteService.create(noteObject).then((initialNotes) => {
+      console.log(initialNotes);
+      setNotes(notes.concat(initialNotes));
+      setNewNote("");
+    });
+  };
+  const handleNoteChange = (event) => {
+    console.log(event.target.value);
+    setNewNote(event.target.value);
+  };
+  const toggleImportanceOf = (id) => {
+    console.log("importance of " + id + " needs to be toggled");
+
+    const note = notes.find((n) => n.id === id);
+    const changedNote = { ...note, important: !note.important };
+
+    noteService.update(id, changedNote).then((initialNotes) => {
+      setNotes(notes.map((n) => (n.id !== id ? n : initialNotes)));
+    });
+  };
+  const deleteNote = (note) => {
+    if (window.confirm(`Delete ${note.id}?`)) {
+      noteService
+        .remove(note.id)
+        .then((response) => {
+          setNotes(notes.filter((n) => n.id !== note.id));
+        })
+        .catch((error) => {
+          setErrorMessage(
+            `Note '${note.content}' was already removed from server`
+          );
+          setTimeout(() => {
+            setErrorMessage(null);
+          }, 5000);
+          setNotes(notes.filter((n) => n.id !== note.id));
+        });
+    }
+  };
   return (
-    <>
-      <Header course={courseData.name} />
-      <Content data={courseData.parts} />
-      <Total data={courseData.parts} />
-      <Hello name="Anupam" age="39" />
-      <Counter counter="10" />
-    </>
+    <div>
+      <h1>Notes</h1>
+      <Notification message={errorMessage} />
+      <div>
+        <button onClick={() => setShowAll(!showAll)}>
+          show {showAll ? "important" : "all"}
+        </button>
+      </div>
+      <ul>
+        {notesToShow.map((note) => (
+          <Note
+            key={note.id}
+            note={note}
+            toggleImportance={() => toggleImportanceOf(note.id)}
+            deleteNote={() => deleteNote(note)}
+          />
+        ))}
+      </ul>
+      <form onSubmit={addNote}>
+        <input value={newNote} onChange={handleNoteChange} />
+        <button type="submit">save</button>
+      </form>
+    </div>
   );
 };
 
