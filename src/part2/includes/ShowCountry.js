@@ -13,38 +13,14 @@ const ShowCountry = ({ country }) => {
       setWeather(response);
     });
   }, []);
-  const WeatherIcon = () => {
-    const wData = getWather.weather[0].description;
-    console.log(wData);
-    let wIcon = "https://openweathermap.org/img/wn/";
-    if (wData === "clear sky") {
-      wIcon += "01n@2x.png";
-    } else if (wData === "few clouds") {
-      wIcon += "02n@2x.png";
-    } else if (wData === "scattered clouds") {
-      wIcon += "03n@2x.png";
-    } else if (wData === "broken clouds") {
-      wIcon += "04n@2x.png";
-    } else if (wData === "shower rain") {
-      wIcon += "09n@2x.png";
-    } else if (wData === "rain") {
-      wIcon += "10n@2x.png";
-    } else if (wData === "thunderstorm") {
-      wIcon += "11n@2x.png";
-    } else if (wData === "snow") {
-      wIcon += "13n@2x.png";
-    } else if (wData === "mist") {
-      wIcon += "50n@2x.png";
-    } else {
-      wIcon += "01n@2x.png";
-    }
-    console.log(wIcon);
-    return (
-      <>
-        <img src={wIcon} />
-      </>
-    );
-  };
+
+  if (!getWather) {
+    return null;
+  }
+
+  const icon = getWather.weather[0].icon;
+  const wIcon = `https://openweathermap.org/img/wn/${icon}@2x.png`;
+
   return (
     <>
       <h1>{country.name.common}</h1>
@@ -62,7 +38,7 @@ const ShowCountry = ({ country }) => {
       <p>Lng: {country.capitalInfo.latlng[1]}</p>
       <h2>{country.capital} Weather Info</h2>
       <p>Temperature: {getWather.main.temp} Celcious</p>
-      <WeatherIcon />
+      <img src={wIcon} />
       <p>Wind: {getWather.wind.speed} m/s</p>
     </>
   );
